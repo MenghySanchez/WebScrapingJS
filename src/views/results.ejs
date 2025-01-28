@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultados del Análisis</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <h1>Resultados del Análisis</h1>
+
+  <% if (error) { %>
+    <h2>Error:</h2>
+    <p><%= error %></p>
+  <% } else { %>
+    <!-- Sección de imágenes analizadas -->
+    <h2>Imágenes Analizadas</h2>
+    <% if (images && images.length > 0) { %>
+      <table>
+        <thead>
+          <tr>
+            <th>URL</th>
+            <th>Tamaño (KB)</th>
+            <th>Formato</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% images.forEach(img => { %>
+            <tr>
+              <td><a href="<%= img.url %>" target="_blank"><%= img.url %></a></td>
+              <td><%= img.size_kb %></td>
+              <td><%= img.format %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p>No se encontraron imágenes grandes.</p>
+    <% } %>
+
+    <!-- Sección de herramientas de seguimiento -->
+    <h2>Herramientas de Seguimiento Detectadas</h2>
+    <% if (trackingTools && trackingTools.length > 0) { %>
+      <ul>
+        <% trackingTools.forEach(tool => { %>
+          <li><%= tool %></li>
+        <% }) %>
+      </ul>
+    <% } else { %>
+      <p>No se detectaron herramientas de seguimiento.</p>
+    <% } %>
+  <% } %>
+
+  <a href="/">Regresar al inicio</a>
+</body>
+</html>
