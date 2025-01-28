@@ -2,10 +2,11 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
 const {
-  analyzeImages,
-  detectTrackingTools,
-  extractSiteTree,
-  checkUrlsStatus,
+    analyzeImages,
+    detectTrackingTools,
+    extractSiteTree,
+    checkUrlsStatus,
+    measurePageLoadTime,
 } = require("./analyzer");
 
 const app = express();
@@ -24,55 +25,65 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Ruta de inicio
 app.get("/", (req, res) => {
-  res.render("index");
+    res.render("index");
 });
 
 // Ruta para analizar URL
 app.post("/analyze", async (req, res) => {
-  const { url } = req.body;
+    const { url } = req.body;
 
-  if (!url) {
-    return res.render("results", {
-      error: "Por favor, ingresa una URL válida.",
-      images: [], // Pasar un arreglo vacío si no hay datos
-      trackingTools: [],
-      siteTree: {}, // Pasar un objeto vacío si no hay datos
-      urlStatuses: [],
-    });
-  }
+    if (!url) {
+        return res.render("results", {
+            error: "Por favor, ingresa una URL válida.",
+            images: [], // Pasar un arreglo vacío si no hay datos
+            trackingTools: [],
+            siteTree: {}, // Pasar un objeto vacío si no hay datos
+            urlStatuses: [],
+            pageLoadResults: [],
+        });
+    }
 
-  try {
-    // Analizar imágenes, herramientas de seguimiento y estructura del sitio
-    const images = await analyzeImages(url);
-    const trackingTools = await detectTrackingTools(url);
-    const siteTree = await extractSiteTree(url); // Asegúrate de que esta función esté implementada
+    try {
+        // Analizar imágenes, herramientas de seguimiento y estructura del sitio
+        const images = await analyzeImages(url);
+        const trackingTools = await detectTrackingTools(url);
+        const siteTree = await extractSiteTree(url); // Asegúrate de que esta función esté implementada
 
-    // Obtener todas las URLs del árbol del sitio
-    const allUrls = Object.keys(siteTree).concat(...Object.values(siteTree).flat());
-    const uniqueUrls = [...new Set(allUrls)]; // Eliminar URLs duplicadas
+        // Obtener todas las URLs del árbol del sitio
+        const allUrls = Object.keys(siteTree).concat(...Object.values(siteTree).flat());
+        const uniqueUrls = [...new Set([url, ...allUrls])]; // Incluir la URL principal y eliminar duplicados
 
-    // Verificar el estado de las URLs
-    const urlStatuses = await checkUrlsStatus(uniqueUrls);
+        // Verificar el estado de las URLs
+        const urlStatuses = await checkUrlsStatus(uniqueUrls);
 
-    res.render("results", {
-      error: null,
-      images: images || [],
-      trackingTools: trackingTools || [],
-      siteTree: siteTree || {}, // Asegúrate de pasar un objeto vacío en caso de que no haya datos
-      urlStatuses: urlStatuses || [],
-    });
-  } catch (error) {
-    res.render("results", {
-      error: `Error al analizar ${url}: ${error.message}`,
-      images: [],
-      trackingTools: [],
-      siteTree: {},
-      urlStatuses: [],
-    });
-  }
+        // Analizar tiempos de carga de todas las páginas del árbol del sitio
+        const pageLoadResults = [];
+        for (const pageUrl of uniqueUrls) {
+            const result = await measurePageLoadTime(pageUrl);
+            pageLoadResults.push(result);
+        }
+
+        res.render("results", {
+            error: null,
+            images: images || [],
+            trackingTools: trackingTools || [],
+            siteTree: siteTree || {}, // Asegúrate de pasar un objeto vacío en caso de que no haya datos
+            urlStatuses: urlStatuses || [],
+            pageLoadResults,
+        });
+    } catch (error) {
+        res.render("results", {
+            error: `Error al analizar ${url}: ${error.message}`,
+            images: [],
+            trackingTools: [],
+            siteTree: {},
+            urlStatuses: [],
+            pageLoadResults: [],
+        });
+    }
 });
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });

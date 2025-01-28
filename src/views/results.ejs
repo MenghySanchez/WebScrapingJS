@@ -1,99 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resultados del Análisis</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <h1>Resultados del Análisis</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resultados del Análisis</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
 
-  <% if (error) { %>
+  <body>
+    <h1>Resultados del Análisis</h1>
+
+    <% if (error) { %>
     <h2>Error:</h2>
     <p><%= error %></p>
-  <% } else { %>
+    <% } else { %>
     <!-- Sección de imágenes analizadas -->
     <h2>Imágenes Analizadas</h2>
-    <% if (images && images.length > 0) { %>
-      <table>
-        <thead>
-          <tr>
-            <th>Miniatura</th>
-            <th>URL</th>
-            <th>Tamaño (KB)</th>
-            <th>Formato</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% images.forEach(img => { %>
-            <tr>
-              <td>
-                <% if (img.thumbnail) { %>
-                  <img src="<%= img.thumbnail %>" alt="Miniatura" width="100" />
-                <% } else { %>
-                  <p>No disponible</p>
-                <% } %>
-              </td>
-              <td><a href="<%= img.url %>" target="_blank"><%= img.url %></a></td>
-              <td><%= img.size_kb %></td>
-              <td><%= img.format %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
+    <% if (images && images.length> 0) { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Miniatura</th>
+          <th>URL</th>
+          <th>Tamaño (KB)</th>
+          <th>Formato</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% images.forEach(img=> { %>
+        <tr>
+          <td>
+            <% if (img.thumbnail) { %>
+            <img src="<%= img.thumbnail %>" alt="Miniatura" width="100" />
+            <% } else { %>
+            <p>No disponible</p>
+            <% } %>
+          </td>
+          <td><a href="<%= img.url %>" target="_blank"> <%= img.url %> </a></td>
+          <td><%= img.size_kb %></td>
+          <td><%= img.format %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
     <% } else { %>
-      <p>No se encontraron imágenes grandes.</p>
+    <p>No se encontraron imágenes grandes.</p>
     <% } %>
 
     <!-- Sección de herramientas de seguimiento -->
     <h2>Herramientas de Seguimiento Detectadas</h2>
-    <% if (trackingTools && trackingTools.length > 0) { %>
-      <ul>
-        <% trackingTools.forEach(tool => { %>
-          <li><%= tool %></li>
-        <% }) %>
-      </ul>
-    <% } else { %>
-      <p>No se detectaron herramientas de seguimiento.</p>
-    <% } %>
-  <% } %>
-
-  <!-- Sección de estados de URLs -->
-<h2>Estados de las URLs</h2>
-<% if (urlStatuses && urlStatuses.length > 0) { %>
-  <table>
-    <thead>
-      <tr>
-        <th>URL</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% urlStatuses.forEach(statusInfo => { %>
-        <tr>
-          <td><a href="<%= statusInfo.url %>" target="_blank"><%= statusInfo.url %></a></td>
-          <td><%= statusInfo.status %></td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
-<% } else { %>
-  <p>No se encontraron URLs para verificar.</p>
-<% } %>
-
-  <!-- Sección del árbol del sitio -->
-  <h2>Árbol del Sitio</h2>
-  <% if (siteTree && Object.keys(siteTree).length > 0) { %>
+    <% if (trackingTools && trackingTools.length> 0) { %>
     <ul>
-      <% Object.keys(siteTree).forEach(page => { %>
-        <li><%= page %> - <%= siteTree[page] %></li>
+      <% trackingTools.forEach(tool=> { %>
+      <li><%= tool %></li>
       <% }) %>
     </ul>
-  <% } else { %>
-    <p>No se pudo generar el árbol del sitio.</p>
-  <% } %>
+    <% } else { %>
+    <p>No se detectaron herramientas de seguimiento.</p>
+    <% } %> <% } %>
 
-  <a href="/">Regresar al inicio</a>
-</body>
+    <!-- Sección de estados de URLs -->
+    <h2>Estados de las URLs</h2>
+    <% if (urlStatuses && urlStatuses.length> 0) { %>
+    <table>
+      <thead>
+        <tr>
+          <th>URL</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% urlStatuses.forEach(statusInfo=> { %>
+        <tr>
+          <td>
+            <a href="<%= statusInfo.url %>" target="_blank">
+              <%= statusInfo.url %>
+            </a>
+          </td>
+          <td><%= statusInfo.status %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <p>No se encontraron URLs para verificar.</p>
+    <% } %>
+
+    <!-- Sección de tiempos de carga -->
+    <h2>Tiempos de Carga de las Páginas</h2>
+    <% if (pageLoadResults && pageLoadResults.length> 0) { %> <%
+    pageLoadResults.forEach(page=> { %>
+    <div>
+      <h3>
+        URL: <a href="<%= page.url %>" target="_blank"> <%= page.url %> </a>
+      </h3>
+      <p>
+        <strong>Tiempo total de carga:</strong>
+        <%= page.loadTime %> ms
+      </p>
+
+      <% if (page.elements && page.elements.length> 0) { %>
+      <h4>Recursos más lentos:</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>URL del Recurso</th>
+            <th>Tiempo de Carga (ms)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% page.elements.forEach(resource=> { %>
+          <tr>
+            <td>
+              <a href="<%= resource.url %>" target="_blank">
+                <%= resource.url %>
+              </a>
+            </td>
+            <td><%= resource.duration %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <p>No se encontraron recursos lentos.</p>
+      <% } %>
+    </div>
+    <hr />
+    <% }) %> <% } else { %>
+    <p>No se pudo calcular el tiempo de carga de las páginas.</p>
+    <% } %>
+
+    <!-- Sección del árbol del sitio -->
+    <h2>Árbol del Sitio</h2>
+    <% if (siteTree && Object.keys(siteTree).length> 0) { %>
+    <ul>
+      <% Object.keys(siteTree).forEach(page=> { %>
+      <li><%= page %> - <%= siteTree[page] %></li>
+      <% }) %>
+    </ul>
+    <% } else { %>
+    <p>No se pudo generar el árbol del sitio.</p>
+    <% } %>
+
+    <a href="/">Regresar al inicio</a>
+  </body>
 </html>

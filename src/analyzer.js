@@ -4,7 +4,7 @@ const { URL } = require("url");
 const sharp = require("sharp");
 const fs = require("fs-extra");
 const path = require("path");
-
+const puppeteer = require("puppeteer"); // Requiere Puppeteer para análisis detallado de tiempos de carga
 
 
 /**
@@ -97,6 +97,42 @@ async function checkUrlsStatus(urls) {
   return results;
 }
 
+async function measurePageLoadTime(url) {
+  try {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    const startTime = Date.now();
+    await page.goto(url, { waitUntil: "load", timeout: 60000 });
+    const endTime = Date.now();
+
+    // Obtener los recursos de la página para identificar tiempos de carga específicos
+    const performanceTiming = await page.evaluate(() => {
+      const timing = performance.timing;
+      return {
+        dnsLookup: timing.domainLookupEnd - timing.domainLookupStart,
+        tcpConnection: timing.connectEnd - timing.connectStart,
+        ttfb: timing.responseStart - timing.requestStart, // Time to First Byte
+        contentLoad: timing.domContentLoadedEventEnd - timing.domContentLoadedEventStart,
+        totalLoad: timing.loadEventEnd - timing.navigationStart,
+      };
+    });
+
+    await browser.close();
+
+    return {
+      url,
+      loadTime: endTime - startTime,
+      performance: performanceTiming,
+    };
+  } catch (error) {
+    return {
+      url,
+      error: error.message,
+    };
+  }
+}
+
 
 async function detectTrackingTools(url) {
   const tools = {
@@ -160,4 +196,4 @@ async function extractSiteTree(baseUrl, maxDepth = 2) {
 }
 
 
-module.exports = { analyzeImages, detectTrackingTools, extractSiteTree, checkUrlsStatus };
+module.exports = { analyzeImages, detectTrackingTools, extractSiteTree, checkUrlsStatus, measurePageLoadTime };
