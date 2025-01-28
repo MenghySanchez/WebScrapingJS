@@ -6,11 +6,44 @@
   <title>Analizador de URL</title>
 </head>
 <body>
+   <!-- Loader -->
+   <div id="loader" style="display: none;">
+    <div class="spinner"></div>
+    <p id="loader-text">Cargando... Esto puede tardar algunos minutos.</p>
+  </div>
+
   <h1>Analizador de URL</h1>
   <form action="/analyze" method="POST">
     <label for="url">Ingresa una URL:</label>
     <input type="text" id="url" name="url" placeholder="https://example.com" required>
     <button type="submit">Analizar</button>
 </form>
+<script>
+  // Mostrar el loader al enviar el formulario
+  const loader = document.getElementById("loader");
+  const form = document.querySelector("form"); // Cambia si tu formulario tiene un id específico
+
+  if (form) {
+    form.addEventListener("submit", () => {
+      loader.style.display = "flex"; // Mostrar el loader
+    });
+  }
+
+  // Opcional: Estimación del tiempo de análisis
+  let estimatedTime = 15; // Tiempo inicial estimado en segundos
+  const loaderText = document.getElementById("loader-text");
+
+  if (loaderText) {
+    const interval = setInterval(() => {
+      if (estimatedTime > 0) {
+        loaderText.textContent = `Cargando... Tiempo estimado restante: ${estimatedTime} segundos.`;
+        estimatedTime--;
+      } else {
+        clearInterval(interval);
+        loaderText.textContent = "Cargando... Esto puede tardar un poco más.";
+      }
+    }, 1000); // Actualizar cada segundo
+  }
+</script>
 </body>
 </html>
