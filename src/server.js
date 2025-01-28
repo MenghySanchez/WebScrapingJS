@@ -1,7 +1,12 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
-const { analyzeImages, detectTrackingTools, extractSiteTree } = require("./analyzer");
+const {
+  analyzeImages,
+  detectTrackingTools,
+  extractSiteTree,
+  checkUrlsStatus,
+} = require("./analyzer");
 
 const app = express();
 const PORT = 3000;
@@ -24,37 +29,48 @@ app.get("/", (req, res) => {
 
 // Ruta para analizar URL
 app.post("/analyze", async (req, res) => {
-    const { url } = req.body;
-  
-    if (!url) {
-      return res.render("results", {
-        error: "Por favor, ingresa una URL válida.",
-        images: [],
-        trackingTools: [],
-        siteTree: {} // Pasar un objeto vacío si no hay datos
-      });
-    }
-  
-    try {
-      const images = await analyzeImages(url);
-      const trackingTools = await detectTrackingTools(url);
-      const siteTree = await extractSiteTree(url); // Asegúrate de que esta función esté implementada
-  
-      res.render("results", {
-        error: null,
-        images: images || [],
-        trackingTools: trackingTools || [],
-        siteTree: siteTree || {} // Asegúrate de pasar un objeto vacío en caso de que no haya datos
-      });
-    } catch (error) {
-      res.render("results", {
-        error: `Error al analizar ${url}: ${error.message}`,
-        images: [],
-        trackingTools: [],
-        siteTree: {}
-      });
-    }
-  });
+  const { url } = req.body;
+
+  if (!url) {
+    return res.render("results", {
+      error: "Por favor, ingresa una URL válida.",
+      images: [], // Pasar un arreglo vacío si no hay datos
+      trackingTools: [],
+      siteTree: {}, // Pasar un objeto vacío si no hay datos
+      urlStatuses: [],
+    });
+  }
+
+  try {
+    // Analizar imágenes, herramientas de seguimiento y estructura del sitio
+    const images = await analyzeImages(url);
+    const trackingTools = await detectTrackingTools(url);
+    const siteTree = await extractSiteTree(url); // Asegúrate de que esta función esté implementada
+
+    // Obtener todas las URLs del árbol del sitio
+    const allUrls = Object.keys(siteTree).concat(...Object.values(siteTree).flat());
+    const uniqueUrls = [...new Set(allUrls)]; // Eliminar URLs duplicadas
+
+    // Verificar el estado de las URLs
+    const urlStatuses = await checkUrlsStatus(uniqueUrls);
+
+    res.render("results", {
+      error: null,
+      images: images || [],
+      trackingTools: trackingTools || [],
+      siteTree: siteTree || {}, // Asegúrate de pasar un objeto vacío en caso de que no haya datos
+      urlStatuses: urlStatuses || [],
+    });
+  } catch (error) {
+    res.render("results", {
+      error: `Error al analizar ${url}: ${error.message}`,
+      images: [],
+      trackingTools: [],
+      siteTree: {},
+      urlStatuses: [],
+    });
+  }
+});
 
 // Iniciar el servidor
 app.listen(PORT, () => {

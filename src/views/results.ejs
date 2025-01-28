@@ -19,6 +19,7 @@
       <table>
         <thead>
           <tr>
+            <th>Miniatura</th>
             <th>URL</th>
             <th>Tamaño (KB)</th>
             <th>Formato</th>
@@ -27,6 +28,13 @@
         <tbody>
           <% images.forEach(img => { %>
             <tr>
+              <td>
+                <% if (img.thumbnail) { %>
+                  <img src="<%= img.thumbnail %>" alt="Miniatura" width="100" />
+                <% } else { %>
+                  <p>No disponible</p>
+                <% } %>
+              </td>
               <td><a href="<%= img.url %>" target="_blank"><%= img.url %></a></td>
               <td><%= img.size_kb %></td>
               <td><%= img.format %></td>
@@ -50,6 +58,29 @@
       <p>No se detectaron herramientas de seguimiento.</p>
     <% } %>
   <% } %>
+
+  <!-- Sección de estados de URLs -->
+<h2>Estados de las URLs</h2>
+<% if (urlStatuses && urlStatuses.length > 0) { %>
+  <table>
+    <thead>
+      <tr>
+        <th>URL</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% urlStatuses.forEach(statusInfo => { %>
+        <tr>
+          <td><a href="<%= statusInfo.url %>" target="_blank"><%= statusInfo.url %></a></td>
+          <td><%= statusInfo.status %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } else { %>
+  <p>No se encontraron URLs para verificar.</p>
+<% } %>
 
   <!-- Sección del árbol del sitio -->
   <h2>Árbol del Sitio</h2>
