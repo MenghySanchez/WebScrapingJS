@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const path = require("path"); // Asegúrate de requerir el módulo 'path'
-const { analyzeImages, detectTrackingTools } = require("./analyzer");
+const path = require("path");
+const { analyzeImages, detectTrackingTools, extractSiteTree } = require("./analyzer");
 
 const app = express();
 const PORT = 3000;
@@ -24,30 +24,37 @@ app.get("/", (req, res) => {
 
 // Ruta para analizar URL
 app.post("/analyze", async (req, res) => {
-  const { url } = req.body;
-
-  if (!url) {
-    return res.render("results", { error: "Por favor, ingresa una URL válida.", images: [], trackingTools: [] });
-  }
-
-  try {
-    // Analizar imágenes y herramientas de seguimiento
-    const images = await analyzeImages(url);
-    const trackingTools = await detectTrackingTools(url);
-
-    res.render("results", {
-      error: null,
-      images: images || [],
-      trackingTools: trackingTools || [],
-    });
-  } catch (error) {
-    res.render("results", {
-      error: `Error al analizar ${url}: ${error.message}`,
-      images: [],
-      trackingTools: [],
-    });
-  }
-});
+    const { url } = req.body;
+  
+    if (!url) {
+      return res.render("results", {
+        error: "Por favor, ingresa una URL válida.",
+        images: [],
+        trackingTools: [],
+        siteTree: {} // Pasar un objeto vacío si no hay datos
+      });
+    }
+  
+    try {
+      const images = await analyzeImages(url);
+      const trackingTools = await detectTrackingTools(url);
+      const siteTree = await extractSiteTree(url); // Asegúrate de que esta función esté implementada
+  
+      res.render("results", {
+        error: null,
+        images: images || [],
+        trackingTools: trackingTools || [],
+        siteTree: siteTree || {} // Asegúrate de pasar un objeto vacío en caso de que no haya datos
+      });
+    } catch (error) {
+      res.render("results", {
+        error: `Error al analizar ${url}: ${error.message}`,
+        images: [],
+        trackingTools: [],
+        siteTree: {}
+      });
+    }
+  });
 
 // Iniciar el servidor
 app.listen(PORT, () => {

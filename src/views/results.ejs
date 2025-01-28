@@ -51,6 +51,18 @@
     <% } %>
   <% } %>
 
+  <!-- Sección del árbol del sitio -->
+  <h2>Árbol del Sitio</h2>
+  <% if (siteTree && Object.keys(siteTree).length > 0) { %>
+    <ul>
+      <% Object.keys(siteTree).forEach(page => { %>
+        <li><%= page %> - <%= siteTree[page] %></li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <p>No se pudo generar el árbol del sitio.</p>
+  <% } %>
+
   <a href="/">Regresar al inicio</a>
 </body>
 </html>

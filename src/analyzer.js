@@ -1,5 +1,7 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
+const { URL } = require("url");
+
 
 async function analyzeImages(url) {
   try {
@@ -66,4 +68,35 @@ async function detectTrackingTools(url) {
   }
 }
 
-module.exports = { analyzeImages, detectTrackingTools };
+async function extractSiteTree(baseUrl, maxDepth = 2) {
+  const visited = new Set(); // Rastrear las páginas visitadas
+  const siteTree = {};
+
+  async function crawl(url, depth) {
+    if (depth > maxDepth || visited.has(url)) return;
+    visited.add(url);
+
+    try {
+      const response = await axios.get(url, { timeout: 10000, headers: { "User-Agent": "Mozilla/5.0" } });
+      const $ = cheerio.load(response.data);
+
+      const links = $("a[href]")
+        .map((_, el) => new URL($(el).attr("href"), baseUrl).toString())
+        .get()
+        .filter(link => link.startsWith(baseUrl)); // Solo enlaces internos
+
+      siteTree[url] = [...new Set(links)];
+      for (const link of links) {
+        await crawl(link, depth + 1);
+      }
+    } catch (error) {
+      siteTree[url] = { error: error.message };
+    }
+  }
+
+  await crawl(baseUrl, 0);
+  return siteTree;
+}
+
+
+module.exports = { analyzeImages, detectTrackingTools, extractSiteTree };
