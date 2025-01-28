@@ -74,6 +74,13 @@ async function analyzeImages(url) {
   }
 }
 
+/**
+ * Checks the HTTP status of a list of URLs.
+ *
+ * @param {string[]} urls - An array of URLs to check.
+ * @returns {Promise<Object[]>} A promise that resolves to an array of objects, each containing the URL and its HTTP status.
+ * @throws {Error} If an error occurs while fetching the URL status.
+ */
 async function checkUrlsStatus(urls) {
   const results = [];
 
@@ -132,7 +139,6 @@ async function measurePageLoadTime(url) {
     };
   }
 }
-
 
 async function detectTrackingTools(url) {
   const tools = {
@@ -195,5 +201,46 @@ async function extractSiteTree(baseUrl, maxDepth = 2) {
   return siteTree;
 }
 
+/**
+ * Extraer información SEO de una página
+ * @param {string} url - URL de la página
+ * @returns {object} - Información SEO de la página
+ */
+async function extractSeoInfo(url) {
+  try {
+    const response = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      timeout: 10000,
+    });
+    const $ = cheerio.load(response.data);
 
-module.exports = { analyzeImages, detectTrackingTools, extractSiteTree, checkUrlsStatus, measurePageLoadTime };
+    // Extraer elementos SEO clave
+    const title = $("title").text() || "Sin título";
+    const description = $('meta[name="description"]').attr("content") || "Sin descripción";
+    const canonical = $('link[rel="canonical"]').attr("href") || url;
+
+    // Recopilar encabezados
+    const headers = {};
+    ["h1", "h2", "h3"].forEach((tag) => {
+      headers[tag] = $(tag)
+        .map((_, el) => $(el).text().trim())
+        .get();
+    });
+
+    return {
+      url,
+      title,
+      description,
+      canonical,
+      headers,
+    };
+  } catch (error) {
+    return {
+      url,
+      error: error.message,
+    };
+  }
+}
+
+
+module.exports = { analyzeImages, detectTrackingTools, extractSiteTree, checkUrlsStatus, measurePageLoadTime, extractSeoInfo };

@@ -130,6 +130,53 @@
     <p>No se pudo calcular el tiempo de carga de las páginas.</p>
     <% } %>
 
+    <!-- Sección de información SEO -->
+<h2>Información SEO de las Páginas</h2>
+<% if (seoResults && seoResults.length > 0) { %>
+  <% seoResults.forEach(seo => { %>
+    <div>
+      <h3>URL: <a href="<%= seo.url %>" target="_blank"><%= seo.url %></a></h3>
+      <% if (seo.error) { %>
+        <p>Error: <%= seo.error %></p>
+      <% } else { %>
+        <table>
+          <tr>
+            <th>Título</th>
+            <td><%= seo.title %></td>
+          </tr>
+          <tr>
+            <th>Descripción</th>
+            <td><%= seo.description %></td>
+          </tr>
+          <tr>
+            <th>Canonical</th>
+            <td><a href="<%= seo.canonical %>" target="_blank"><%= seo.canonical %></a></td>
+          </tr>
+          <tr>
+            <th>Encabezados</th>
+            <td>
+              <ul>
+                <% for (const [header, values] of Object.entries(seo.headers)) { %>
+                  <li><strong><%= header %>:</strong>
+                    <ul>
+                      <% values.forEach(val => { %>
+                        <li><%= val %></li>
+                      <% }) %>
+                    </ul>
+                  </li>
+                <% } %>
+              </ul>
+            </td>
+          </tr>
+        </table>
+      <% } %>
+    </div>
+    <hr />
+  <% }) %>
+<% } else { %>
+  <p>No se pudo extraer la información SEO.</p>
+<% } %>
+
     <!-- Sección del árbol del sitio -->
     <h2>Árbol del Sitio</h2>
     <% if (siteTree && Object.keys(siteTree).length> 0) { %>

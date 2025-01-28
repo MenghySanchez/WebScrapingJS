@@ -7,6 +7,7 @@ const {
     extractSiteTree,
     checkUrlsStatus,
     measurePageLoadTime,
+    extractSeoInfo,
 } = require("./analyzer");
 
 const app = express();
@@ -30,7 +31,7 @@ app.get("/", (req, res) => {
 
 // Ruta para analizar URL
 app.post("/analyze", async (req, res) => {
-    const { url } = req.body;
+    const { url, siteTree } = req.body;
 
     if (!url) {
         return res.render("results", {
@@ -40,6 +41,7 @@ app.post("/analyze", async (req, res) => {
             siteTree: {}, // Pasar un objeto vacío si no hay datos
             urlStatuses: [],
             pageLoadResults: [],
+            seoResults: [],
         });
     }
 
@@ -56,6 +58,18 @@ app.post("/analyze", async (req, res) => {
         // Verificar el estado de las URLs
         const urlStatuses = await checkUrlsStatus(uniqueUrls);
 
+        // Recopilar todas las URLs del árbol del sitio
+        const allUrlss = Object.keys(siteTree).concat(...Object.values(siteTree).flat());
+        const uniqueUrlss = [...new Set([url, ...allUrlss])];
+
+        // Analizar SEO para cada página
+        const seoResults = [];
+        for (const pageUrl of uniqueUrlss) {
+        const seoInfo = await extractSeoInfo(pageUrl);
+        seoResults.push(seoInfo);
+        }
+
+
         // Analizar tiempos de carga de todas las páginas del árbol del sitio
         const pageLoadResults = [];
         for (const pageUrl of uniqueUrls) {
@@ -70,6 +84,7 @@ app.post("/analyze", async (req, res) => {
             siteTree: siteTree || {}, // Asegúrate de pasar un objeto vacío en caso de que no haya datos
             urlStatuses: urlStatuses || [],
             pageLoadResults,
+            seoResults,
         });
     } catch (error) {
         res.render("results", {
@@ -79,6 +94,7 @@ app.post("/analyze", async (req, res) => {
             siteTree: {},
             urlStatuses: [],
             pageLoadResults: [],
+            seoResults: [],
         });
     }
 });
